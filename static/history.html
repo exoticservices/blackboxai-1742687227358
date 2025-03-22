@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Air Quality History</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { 
+            font-family: 'Inter', sans-serif;
+            transition: background-color 0.3s ease;
+        }
+        .glass {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+        .glass:hover {
+            background: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+        }
+        .nav-link {
+            position: relative;
+            transition: color 0.3s ease;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -4px;
+            left: 0;
+            background-color: #3B82F6;
+            transition: width 0.3s ease;
+        }
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        .button {
+            transition: all 0.3s ease;
+        }
+        .button:hover {
+            transform: translateY(-2px);
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease forwards;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-purple-50 min-h-screen">
+    <nav class="glass fixed w-full top-0 z-50 shadow-sm">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="text-xl font-semibold text-gray-800">Air Quality History</div>
+                <div class="space-x-8">
+                    <a href="/" class="nav-link text-gray-600 hover:text-gray-900">Dashboard</a>
+                    <a href="/history.html" class="nav-link text-gray-600 hover:text-gray-900">History</a>
+                    <a href="/settings.html" class="nav-link text-gray-600 hover:text-gray-900">Settings</a>
+                    <a href="/onboarding.html" class="nav-link text-gray-600 hover:text-gray-900">Help</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-6 pt-24 pb-12">
+        <div class="glass rounded-2xl p-8 shadow-lg fade-in">
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-2xl font-semibold text-gray-800">Historical Data</h1>
+                <div class="space-x-4">
+                    <button onclick="loadData('24h')" class="button px-4 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600">24 Hours</button>
+                    <button onclick="loadData('7d')" class="button px-4 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600">7 Days</button>
+                    <button onclick="loadData('30d')" class="button px-4 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600">30 Days</button>
+                </div>
+            </div>
+            
+            <!-- Chart Container -->
+            <div class="h-96 mb-8">
+                <canvas id="historyChart"></canvas>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+                <div class="glass rounded-xl p-6 transition-all duration-300 hover:shadow-lg">
+                    <h3 class="text-lg font-medium text-gray-800 mb-2">Average PM2.5</h3>
+                    <div id="avgPM25" class="text-2xl font-semibold text-blue-600">--</div>
+                </div>
+                <div class="glass rounded-xl p-6 transition-all duration-300 hover:shadow-lg">
+                    <h3 class="text-lg font-medium text-gray-800 mb-2">Maximum PM2.5</h3>
+                    <div id="maxPM25" class="text-2xl font-semibold text-red-600">--</div>
+                </div>
+                <div class="glass rounded-xl p-6 transition-all duration-300 hover:shadow-lg">
+                    <h3 class="text-lg font-medium text-gray-800 mb-2">Minimum PM2.5</h3>
+                    <div id="minPM25" class="text-2xl font-semibold text-green-600">--</div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const ctx = document.getElementById('historyChart').getContext('2d');
+        let historyChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        label: 'PM2.5',
+                        data: [],
+                        borderColor: '#3B82F6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 2,
+                        pointHoverRadius: 5
+                    },
+                    {
+                        label: 'PM10',
+                        data: [],
+                        borderColor: '#10B981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 2,
+                        pointHoverRadius: 5
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            font: {
+                                family: 'Inter'
+                            }
+                        }
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                        titleColor: '#1F2937',
+                        bodyColor: '#1F2937',
+                        borderColor: '#E5E7EB',
+                        borderWidth: 1,
+                        padding: 12,
+                        bodyFont: {
+                            family: 'Inter'
+                        },
+                        titleFont: {
+                            family: 'Inter',
+                            weight: '600'
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(156, 163, 175, 0.1)'
+                        },
+                        ticks: {
+                            font: {
+                                family: 'Inter'
+                            }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(156, 163, 175, 0.1)'
+                        },
+                        ticks: {
+                            font: {
+                                family: 'Inter'
+                            },
+                            maxRotation: 45,
+                            minRotation: 45
+                        }
+                    }
+                },
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                },
+                animation: {
+                    duration: 1000,
+                    easing: 'easeInOutQuart'
+                }
+            }
+        });
+
+        function updateStatistics(data) {
+            const pm25Values = data.pm25_values;
+            const avgPM25 = pm25Values.reduce((a, b) => a + b, 0) / pm25Values.length;
+            const maxPM25 = Math.max(...pm25Values);
+            const minPM25 = Math.min(...pm25Values);
+
+            document.getElementById('avgPM25').textContent = avgPM25.toFixed(1);
+            document.getElementById('maxPM25').textContent = maxPM25.toFixed(1);
+            document.getElementById('minPM25').textContent = minPM25.toFixed(1);
+        }
+
+        function formatTimestamp(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleString();
+        }
+
+        function loadData(timeframe) {
+            fetch(`/api/history?timeframe=${timeframe}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Update chart
+                    historyChart.data.labels = data.timestamps.map(formatTimestamp);
+                    historyChart.data.datasets[0].data = data.pm25_values;
+                    historyChart.data.datasets[1].data = data.pm10_values;
+                    historyChart.update();
+
+                    // Update statistics
+                    updateStatistics(data);
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        // Load last 24 hours by default
+        loadData('24h');
+
+        // WebSocket connection for real-time updates
+        const ws = new WebSocket(`ws://${window.location.host}/ws`);
+        ws.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            if (data.type === 'update') {
+                loadData('24h');  // Reload current timeframe
+            }
+        };
+    </script>
+</body>
+</html>
