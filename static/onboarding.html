@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Air Quality Monitor - Help</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { 
+            font-family: 'Inter', sans-serif;
+            transition: background-color 0.3s ease;
+        }
+        .glass {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+        .glass:hover {
+            background: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+        }
+        .nav-link {
+            position: relative;
+            transition: color 0.3s ease;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -4px;
+            left: 0;
+            background-color: #3B82F6;
+            transition: width 0.3s ease;
+        }
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        .page {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .page.active {
+            display: block;
+            opacity: 1;
+        }
+        .nav-dot {
+            transition: all 0.3s ease;
+        }
+        .nav-dot.active {
+            background-color: #3B82F6;
+            transform: scale(1.2);
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease forwards;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-purple-50 min-h-screen">
+    <nav class="glass fixed w-full top-0 z-50 shadow-sm">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="text-xl font-semibold text-gray-800">Help & Guide</div>
+                <div class="space-x-8">
+                    <a href="/" class="nav-link text-gray-600 hover:text-gray-900">Dashboard</a>
+                    <a href="/history.html" class="nav-link text-gray-600 hover:text-gray-900">History</a>
+                    <a href="/settings.html" class="nav-link text-gray-600 hover:text-gray-900">Settings</a>
+                    <a href="/onboarding.html" class="nav-link text-gray-600 hover:text-gray-900">Help</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-6 pt-24 pb-12">
+        <div class="glass rounded-2xl p-8 shadow-lg">
+            <div class="max-w-3xl mx-auto">
+                <!-- Page 1: Welcome -->
+                <div class="page active" id="page1">
+                    <div class="text-center mb-8 fade-in">
+                        <h2 class="text-3xl font-semibold text-gray-800 mb-4">Welcome to Your Air Quality Monitor</h2>
+                        <p class="text-gray-600">Let's get you started with monitoring your air quality</p>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 fade-in">
+                        <div class="glass rounded-xl p-6 hover:shadow-lg transition-all duration-300">
+                            <i class="fas fa-microchip text-4xl text-blue-500 mb-4"></i>
+                            <h3 class="text-xl font-medium text-gray-800 mb-2">SDS011 Sensor</h3>
+                            <p class="text-gray-600">High-precision laser dust sensor for accurate PM2.5 and PM10 measurements</p>
+                        </div>
+                        <div class="glass rounded-xl p-6 hover:shadow-lg transition-all duration-300">
+                            <i class="fas fa-chart-line text-4xl text-blue-500 mb-4"></i>
+                            <h3 class="text-xl font-medium text-gray-800 mb-2">Real-time Monitoring</h3>
+                            <p class="text-gray-600">Continuous monitoring with instant updates and historical data tracking</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Page 2: Dashboard -->
+                <div class="page" id="page2">
+                    <h2 class="text-2xl font-semibold text-gray-800 mb-6">Dashboard Overview</h2>
+                    <div class="space-y-6">
+                        <div class="glass rounded-xl p-6">
+                            <h3 class="text-xl font-medium text-gray-800 mb-3">Gauge Display</h3>
+                            <p class="text-gray-600">The gauge shows current PM2.5 levels with color indicators:</p>
+                            <ul class="list-disc list-inside text-gray-600 mt-2 space-y-2">
+                                <li class="text-green-600">Green (0-12 μg/m³): Good air quality</li>
+                                <li class="text-yellow-600">Yellow (12-35 μg/m³): Moderate levels</li>
+                                <li class="text-red-600">Red (>35 μg/m³): Poor air quality</li>
+                            </ul>
+                        </div>
+                        <div class="glass rounded-xl p-6">
+                            <h3 class="text-xl font-medium text-gray-800 mb-3">Real-time Updates</h3>
+                            <p class="text-gray-600">The dashboard updates every 5 seconds with fresh readings from your sensor.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Page 3: History -->
+                <div class="page" id="page3">
+                    <h2 class="text-2xl font-semibold text-gray-800 mb-6">Historical Data</h2>
+                    <div class="space-y-6">
+                        <div class="glass rounded-xl p-6">
+                            <h3 class="text-xl font-medium text-gray-800 mb-3">Time Ranges</h3>
+                            <div class="space-y-4">
+                                <div class="p-4 bg-white/50 rounded-lg">
+                                    <h4 class="font-medium text-gray-800">24 Hours View</h4>
+                                    <p class="text-gray-600">Detailed view of the last 24 hours of readings</p>
+                                </div>
+                                <div class="p-4 bg-white/50 rounded-lg">
+                                    <h4 class="font-medium text-gray-800">7 Days View</h4>
+                                    <p class="text-gray-600">Weekly trends and patterns</p>
+                                </div>
+                                <div class="p-4 bg-white/50 rounded-lg">
+                                    <h4 class="font-medium text-gray-800">30 Days View</h4>
+                                    <p class="text-gray-600">Monthly overview and long-term trends</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Page 4: Settings -->
+                <div class="page" id="page4">
+                    <h2 class="text-2xl font-semibold text-gray-800 mb-6">Customizing Your Monitor</h2>
+                    <div class="space-y-6">
+                        <div class="glass rounded-xl p-6">
+                            <h3 class="text-xl font-medium text-gray-800 mb-3">Alert Thresholds</h3>
+                            <p class="text-gray-600 mb-4">Configure when you want to be notified about air quality changes:</p>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="p-4 bg-white/50 rounded-lg">
+                                    <h4 class="font-medium text-gray-800">Warning Levels</h4>
+                                    <p class="text-gray-600">Set early warning thresholds for both PM2.5 and PM10</p>
+                                </div>
+                                <div class="p-4 bg-white/50 rounded-lg">
+                                    <h4 class="font-medium text-gray-800">Critical Levels</h4>
+                                    <p class="text-gray-600">Define emergency thresholds for immediate action</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="glass rounded-xl p-6">
+                            <h3 class="text-xl font-medium text-gray-800 mb-3">Sensor Calibration</h3>
+                            <p class="text-gray-600">Fine-tune your sensor readings for maximum accuracy:</p>
+                            <ul class="list-disc list-inside text-gray-600 mt-2">
+                                <li>Adjust PM2.5 calibration factor</li>
+                                <li>Set PM10 calibration values</li>
+                                <li>Compare with reference measurements</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Navigation Controls -->
+                <div class="mt-8 flex items-center justify-between">
+                    <button id="prevBtn" class="button bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i class="fas fa-arrow-left mr-2"></i>Previous
+                    </button>
+                    <div class="flex space-x-2">
+                        <div class="nav-dot w-3 h-3 rounded-full bg-gray-300 cursor-pointer" data-page="1"></div>
+                        <div class="nav-dot w-3 h-3 rounded-full bg-gray-300 cursor-pointer" data-page="2"></div>
+                        <div class="nav-dot w-3 h-3 rounded-full bg-gray-300 cursor-pointer" data-page="3"></div>
+                        <div class="nav-dot w-3 h-3 rounded-full bg-gray-300 cursor-pointer" data-page="4"></div>
+                    </div>
+                    <button id="nextBtn" class="button bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-all duration-300">
+                        Next<i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let currentPage = 1;
+        const totalPages = 4;
+
+        function showPage(pageNum) {
+            // Hide all pages
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            
+            // Show selected page
+            document.getElementById(`page${pageNum}`).classList.add('active');
+            
+            // Update navigation dots
+            document.querySelectorAll('.nav-dot').forEach((dot, index) => {
+                dot.classList.toggle('active', index + 1 === pageNum);
+            });
+            
+            // Update button states
+            document.getElementById('prevBtn').disabled = pageNum === 1;
+            document.getElementById('nextBtn').textContent = pageNum === totalPages ? 'Finish' : 'Next';
+        }
+
+        document.getElementById('prevBtn').addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                showPage(currentPage);
+            }
+        });
+
+        document.getElementById('nextBtn').addEventListener('click', () => {
+            if (currentPage < totalPages) {
+                currentPage++;
+                showPage(currentPage);
+            } else {
+                window.location.href = '/';  // Return to dashboard when finished
+            }
+        });
+
+        // Navigation dot clicks
+        document.querySelectorAll('.nav-dot').forEach(dot => {
+            dot.addEventListener('click', () => {
+                currentPage = parseInt(dot.dataset.page);
+                showPage(currentPage);
+            });
+        });
+
+        // Initialize
+        showPage(1);
+    </script>
+</body>
+</html>
