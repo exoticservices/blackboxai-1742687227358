@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Air Quality Monitor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { 
+            font-family: 'Inter', sans-serif;
+            transition: background-color 0.3s ease;
+        }
+        .glass {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+        .glass:hover {
+            background: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+        }
+        .nav-link {
+            position: relative;
+            transition: color 0.3s ease;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -4px;
+            left: 0;
+            background-color: #3B82F6;
+            transition: width 0.3s ease;
+        }
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        .card {
+            transform: translateY(0);
+            transition: all 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .button {
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .button::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: -100%;
+            background: linear-gradient(
+                90deg,
+                rgba(255,255,255,0) 0%,
+                rgba(255,255,255,0.2) 50%,
+                rgba(255,255,255,0) 100%
+            );
+            transition: left 0.5s ease;
+        }
+        .button:hover::after {
+            left: 100%;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease forwards;
+        }
+        .page-transition {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeIn 0.5s ease forwards;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-purple-50 min-h-screen">
+    <nav class="glass fixed w-full top-0 z-50 shadow-sm">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="text-xl font-semibold text-gray-800 fade-in">Air Quality Monitor</div>
+                <div class="space-x-8">
+                    <a href="/" class="nav-link text-gray-600 hover:text-gray-900 transition-all">Dashboard</a>
+                    <a href="/history.html" class="nav-link text-gray-600 hover:text-gray-900 transition-all">History</a>
+                    <a href="/settings.html" class="nav-link text-gray-600 hover:text-gray-900 transition-all">Settings</a>
+                    <a href="/onboarding.html" class="nav-link text-gray-600 hover:text-gray-900 transition-all">Help</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-6 pt-24 pb-12">
+        <div class="glass rounded-2xl p-8 shadow-lg backdrop-blur-lg transition-all duration-300 hover:shadow-xl page-transition">
+            <h1 class="text-2xl font-semibold text-gray-800 mb-6 fade-in">Real-time Air Quality</h1>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="card transition-transform duration-300">
+                    <canvas id="gaugeChart" class="w-full"></canvas>
+                </div>
+                <div class="space-y-6">
+                    <div class="glass rounded-xl p-6 card hover:shadow-lg transition-all duration-300">
+                        <h2 class="text-lg font-medium text-gray-800 mb-2">Current Readings</h2>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="transition-all duration-300">
+                                <div class="text-sm text-gray-600">PM2.5</div>
+                                <div id="pm25" class="text-2xl font-semibold text-gray-800 transition-opacity duration-200">--</div>
+                            </div>
+                            <div class="transition-all duration-300">
+                                <div class="text-sm text-gray-600">PM10</div>
+                                <div id="pm10" class="text-2xl font-semibold text-gray-800 transition-opacity duration-200">--</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="glass rounded-xl p-6 card hover:shadow-lg transition-all duration-300">
+                        <h2 class="text-lg font-medium text-gray-800 mb-2">Air Quality Status</h2>
+                        <div id="airQualityStatus" class="text-lg font-medium transition-all duration-300">
+                            Checking air quality...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // WebSocket connection
+        const ws = new WebSocket(`ws://${window.location.host}/ws`);
+        
+        ws.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            if (data.type === 'update') {
+                updateReadings();
+            }
+        };
+
+        // Initialize gauge chart with smooth animations
+        const ctx = document.getElementById('gaugeChart').getContext('2d');
+        
+        // Create initial gradient
+        const createGradient = (color1, color2) => {
+            const gradient = ctx.createLinearGradient(0, 0, 200, 0);
+            gradient.addColorStop(0, color1);
+            gradient.addColorStop(1, color2);
+            return gradient;
+        };
+
+        // Initial gradient (green)
+        const initialGradient = createGradient('#10B981', '#34D399');
+
+        const gaugeChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                datasets: [{
+                    data: [33, 67],
+                    backgroundColor: [initialGradient, '#E5E7EB'],
+                    circumference: 180,
+                    rotation: 270,
+                    borderWidth: 0,
+                    borderRadius: 15,
+                    spacing: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { enabled: false }
+                },
+                animation: {
+                    duration: 1500,
+                    easing: 'easeInOutQuart'
+                }
+            }
+        });
+
+        function getAirQualityStatus(pm25) {
+            if (pm25 <= 12) {
+                return {
+                    text: "Good",
+                    color: "text-green-600"
+                };
+            } else if (pm25 <= 35) {
+                return {
+                    text: "Moderate",
+                    color: "text-yellow-600"
+                };
+            } else {
+                return {
+                    text: "Poor",
+                    color: "text-red-600"
+                };
+            }
+        }
+
+        // Update readings with smooth animations
+        function updateReadings() {
+            fetch('/api/current')
+                .then(response => response.json())
+                .then(data => {
+                    // Update numerical displays with fade
+                    const pm25Display = document.getElementById('pm25');
+                    const pm10Display = document.getElementById('pm10');
+                    const statusDisplay = document.getElementById('airQualityStatus');
+                    
+                    // Fade out
+                    pm25Display.style.opacity = '0';
+                    pm10Display.style.opacity = '0';
+                    statusDisplay.style.opacity = '0';
+                    
+                    setTimeout(() => {
+                        // Update values
+                        pm25Display.textContent = data.pm25.toFixed(1);
+                        pm10Display.textContent = data.pm10.toFixed(1);
+                        
+                        // Update air quality status
+                        const status = getAirQualityStatus(data.pm25);
+                        statusDisplay.textContent = status.text;
+                        statusDisplay.className = `text-lg font-medium ${status.color} transition-all duration-300`;
+                        
+                        // Fade in
+                        pm25Display.style.opacity = '1';
+                        pm10Display.style.opacity = '1';
+                        statusDisplay.style.opacity = '1';
+                    }, 200);
+                    
+                    // Update gauge with enhanced scaling
+                    const pm25 = data.pm25;
+                    let percentage;
+                    
+                    // Linear scaling with adjusted ranges for better visibility
+                    if (pm25 <= 12) {
+                        percentage = (pm25 / 12) * 33;
+                        gaugeChart.data.datasets[0].backgroundColor[0] = createGradient('#10B981', '#34D399'); // Green
+                    } else if (pm25 <= 35) {
+                        percentage = 33 + ((pm25 - 12) / (35 - 12)) * 33;
+                        gaugeChart.data.datasets[0].backgroundColor[0] = createGradient('#FBBF24', '#F59E0B'); // Yellow
+                    } else {
+                        percentage = 66 + ((pm25 - 35) / 15) * 34;
+                        gaugeChart.data.datasets[0].backgroundColor[0] = createGradient('#EF4444', '#DC2626'); // Red
+                    }
+                    
+                    gaugeChart.data.datasets[0].data = [percentage, 100 - percentage];
+                    gaugeChart.update();
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        // Update readings every 5 seconds
+        updateReadings();
+        setInterval(updateReadings, 5000);
+    </script>
+</body>
+</html>
